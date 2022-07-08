@@ -1,0 +1,2 @@
+# gorep
+Golang repository generator
