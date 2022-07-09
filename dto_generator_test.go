@@ -3,14 +3,76 @@ package gorep
 import (
 	"fmt"
 	"io/ioutil"
+	"log"
+	"os"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/andreyvit/diff"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
-	_ "github.com/mattn/go-sqlite3"
+	"github.com/ory/dockertest/v3"
+	"github.com/ory/dockertest/v3/docker"
 )
+
+var testDatabase *sqlx.DB
+
+func TestMain(m *testing.M) {
+	const (
+		maxDockerWaitSeconds = 120
+	)
+
+	pool, err := dockertest.NewPool("")
+	if err != nil {
+		log.Fatalf("Could not connect to docker: %s", err)
+	}
+
+	resource, err := pool.RunWithOptions(
+		&dockertest.RunOptions{
+			Repository: "postgres",
+			Tag:        "11",
+			Env: []string{
+				"POSTGRES_PASSWORD=secret",
+				"POSTGRES_USER=user_name",
+				"POSTGRES_DB=dbname",
+				"listen_addresses = '*'",
+			},
+		}, func(config *docker.HostConfig) {
+			config.AutoRemove = true
+			config.RestartPolicy = docker.RestartPolicy{Name: "no"}
+		},
+	)
+	if err != nil {
+		panic(fmt.Errorf("[docker_test] could not start resource: %w", err))
+	}
+
+	hostAndPort := resource.GetHostPort("5432/tcp")
+	databaseUrl := fmt.Sprintf("postgres://user_name:secret@%s/dbname?sslmode=disable", hostAndPort)
+
+	log.Println("Connecting to database on url: ", databaseUrl)
+
+	resource.Expire(maxDockerWaitSeconds)
+
+	pool.MaxWait = maxDockerWaitSeconds * time.Second
+	if err = pool.Retry(
+		func() error {
+			testDatabase, err = sqlx.Connect("postgres", databaseUrl)
+
+			return err
+		},
+	); err != nil {
+		panic(fmt.Errorf("[create_database] error: %w", err))
+	}
+
+	code := m.Run()
+
+	if err := pool.Purge(resource); err != nil {
+		log.Fatalf("[docker_test] could not purge resource: %s", err)
+	}
+
+	os.Exit(code)
+}
 
 func TestDtoGenerator_Generate(t *testing.T) {
 	const (
@@ -19,9 +81,6 @@ func TestDtoGenerator_Generate(t *testing.T) {
 		testDtoGoldenExampleFilePath            = "test_data/test_dto.golden"
 		testDtoWithImportsGoldenExampleFilePath = "test_data/test_dto_with_imports.golden"
 	)
-
-	database := createPostgresDatabase()
-	defer database.Close()
 
 	expectedDto, err := ioutil.ReadFile(testDtoGoldenExampleFilePath)
 	if err != nil {
@@ -47,13 +106,13 @@ func TestDtoGenerator_Generate(t *testing.T) {
 		{
 			name: "table with int and varchar fields, must return correct DTO as string",
 			arguments: arguments{
-				database:    database,
+				database:    testDatabase,
 				packageName: packageName,
 				tableName:   tableName,
 			},
 			mockBehaviour: func() {
 				createTable(
-					database, tableName, map[string]string{
+					testDatabase, tableName, map[string]string{
 						"id":    makeNotNullable(databaseFieldTypeInt),
 						"value": makeNotNullable(databaseFieldTypeVarchar),
 					},
@@ -65,13 +124,13 @@ func TestDtoGenerator_Generate(t *testing.T) {
 		{
 			name: "table with fields and import types, must return correct DTO as string",
 			arguments: arguments{
-				database:    database,
+				database:    testDatabase,
 				packageName: packageName,
 				tableName:   tableName,
 			},
 			mockBehaviour: func() {
 				createTable(
-					database, tableName, map[string]string{
+					testDatabase, tableName, map[string]string{
 						"value_bigint":                 databaseFieldTypeBigint,
 						"value_boolean":                databaseFieldTypeBoolean,
 						"value_date":                   databaseFieldTypeDate,
@@ -99,7 +158,7 @@ func TestDtoGenerator_Generate(t *testing.T) {
 		{
 			name: "empty package name, must return error",
 			arguments: arguments{
-				database:    database,
+				database:    testDatabase,
 				packageName: "",
 				tableName:   tableName,
 			},
@@ -110,7 +169,7 @@ func TestDtoGenerator_Generate(t *testing.T) {
 		{
 			name: "empty table name, must return error",
 			arguments: arguments{
-				database:    database,
+				database:    testDatabase,
 				packageName: packageName,
 				tableName:   "",
 			},
@@ -145,20 +204,6 @@ func TestDtoGenerator_Generate(t *testing.T) {
 
 func makeNotNullable(typeName string) string {
 	return fmt.Sprintf("%s NOT NULL", typeName)
-}
-
-func createPostgresDatabase() *sqlx.DB {
-	database, err := sqlx.Connect(
-		"postgres", fmt.Sprintf(
-			"host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
-			"localhost", 5433, "2Vw0AAtV2svu", "010dYSkjHMlY", "mud2",
-		),
-	)
-	if err != nil {
-		panic(fmt.Errorf("[create_database] error: %w", err))
-	}
-
-	return database
 }
 
 func createTable(database *sqlx.DB, tableName string, columnsMap map[string]string) {
