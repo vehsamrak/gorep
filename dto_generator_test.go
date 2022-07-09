@@ -13,13 +13,14 @@ import (
 
 func TestDtoGenerator_Generate(t *testing.T) {
 	const (
-		tableName                               = "test"
+		databaseFile                            = "test_data/database.db"
 		packageName                             = "package_name"
+		tableName                               = "test"
 		testDtoGoldenExampleFilePath            = "test_data/test_dto.golden"
 		testDtoWithImportsGoldenExampleFilePath = "test_data/test_dto_with_imports.golden"
 	)
 
-	database := createDatabase("test_data/database.db")
+	database := createDatabase(databaseFile)
 	defer database.Close()
 
 	expectedDto, err := ioutil.ReadFile(testDtoGoldenExampleFilePath)
