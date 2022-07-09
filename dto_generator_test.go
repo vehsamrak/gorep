@@ -53,9 +53,10 @@ func TestDtoGenerator_Generate(t *testing.T) {
 			},
 			mockBehaviour: func() {
 				createTable(
-					database,
-					tableName,
-					map[string]string{"id": databaseFieldTypeInt, "value": databaseFieldTypeVarchar},
+					database, tableName, map[string]string{
+						"id":    databaseFieldTypeInt,
+						"value": databaseFieldTypeVarchar,
+					},
 				)
 			},
 			expected:      string(expectedDto),
@@ -137,7 +138,6 @@ func TestDtoGenerator_Generate(t *testing.T) {
 					t.Errorf("Generate() error: %v, expected error: %v", err, tt.expectedError)
 					return
 				}
-
 				if result != tt.expected {
 					t.Errorf(
 						"Generate() result is not as expected:\n%v",
