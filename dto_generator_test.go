@@ -126,13 +126,14 @@ func createTable(database *sqlx.DB, tableName string, columnsMap map[string]stri
 }
 
 func dropAllTables(database *sqlx.DB) {
-	rows, err := database.Query("select name from sqlite_master where type = 'table'")
+	rows, err := database.Query("SELECT name FROM sqlite_master WHERE type = 'table'")
 	if err != nil {
 		panic(err)
 	}
 	defer rows.Close()
 
-	unapplicableTableNames := map[string]struct{}{
+	// sqlite_sequence table could not be dropped in SQLite
+	inapplicableTableNames := map[string]struct{}{
 		"sqlite_sequence": {},
 	}
 
@@ -148,11 +149,11 @@ func dropAllTables(database *sqlx.DB) {
 	}
 
 	for _, tableName := range tableNames {
-		if _, ok := unapplicableTableNames[tableName]; ok {
+		if _, ok := inapplicableTableNames[tableName]; ok {
 			continue
 		}
 
-		_, err = database.Exec(fmt.Sprintf("drop table %s;", tableName))
+		_, err = database.Exec(fmt.Sprintf("DROP TABLE %s", tableName))
 		if err != nil {
 			panic(fmt.Errorf("[drop_all_tables] error: %w", err))
 		}
