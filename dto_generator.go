@@ -220,6 +220,7 @@ func mapDatabaseType(databaseTypeName string, isNullable bool) string {
 func (g *DtoGenerator) createImports(fields []databaseField) []string {
 	importsMap := map[string]string{
 		"time.Time":       "time",
+		"[]sql.NullByte":  "database/sql",
 		"sql.NullBool":    "database/sql",
 		"sql.NullFloat64": "database/sql",
 		"sql.NullString":  "database/sql",
