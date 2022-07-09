@@ -3,27 +3,27 @@
 package package_name
 
 import (
-	"sql"
+	"database/sql"
 	"time"
 )
 
 type TableTestDTO struct {
-    ValueVarchar sql.NullString `db:"value_varchar"`
-    ValueTimestampNotNullable time.Time `db:"value_timestamp_not_nullable"`
-    ValueTimestamp sql.NullTime `db:"value_timestamp"`
-    ValueText sql.NullString `db:"value_text"`
-    ValueSmallint sql.NullInt64 `db:"value_smallint"`
-    ValueSerial int64 `db:"value_serial"`
-    ValueReal sql.NullFloat64 `db:"value_real"`
-    ValueNumeric sql.NullInt64 `db:"value_numeric"`
-    ValueInteger sql.NullInt64 `db:"value_integer"`
-    ValueInt8 sql.NullInt64 `db:"value_int8"`
-    ValueInt2 sql.NullInt64 `db:"value_int2"`
-    ValueInt sql.NullInt64 `db:"value_int"`
-    ValueFloat sql.NullFloat64 `db:"value_float"`
-    ValueDoublePrecision sql.NullFloat64 `db:"value_double_precision"`
-    ValueDecimal sql.NullInt64 `db:"value_decimal"`
-    ValueDate sql.NullTime `db:"value_date"`
-    ValueBoolean sql.NullBool `db:"value_boolean"`
     ValueBigint sql.NullInt64 `db:"value_bigint"`
+    ValueBoolean sql.NullBool `db:"value_boolean"`
+    ValueDate sql.NullTime `db:"value_date"`
+    ValueDecimal sql.NullInt64 `db:"value_decimal"`
+    ValueDoublePrecision sql.NullFloat64 `db:"value_double_precision"`
+    ValueFloat sql.NullFloat64 `db:"value_float"`
+    ValueInt sql.NullInt64 `db:"value_int"`
+    ValueInt2 sql.NullInt64 `db:"value_int2"`
+    ValueInt8 sql.NullInt64 `db:"value_int8"`
+    ValueInteger sql.NullInt64 `db:"value_integer"`
+    ValueNumeric sql.NullInt64 `db:"value_numeric"`
+    ValueReal sql.NullFloat64 `db:"value_real"`
+    ValueSerial int64 `db:"value_serial"`
+    ValueSmallint sql.NullInt64 `db:"value_smallint"`
+    ValueText sql.NullString `db:"value_text"`
+    ValueTimestamp sql.NullTime `db:"value_timestamp"`
+    ValueTimestampNotNullable time.Time `db:"value_timestamp_not_nullable"`
+    ValueVarchar sql.NullString `db:"value_varchar"`
 }

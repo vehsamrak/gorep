@@ -75,9 +75,13 @@ func (g *DtoGenerator) Generate(packageName string, tableName string) (string, e
 		return "", err
 	}
 
+	if len(fields) == 0 {
+		return "", errors.New("table was not found or has no columns")
+	}
+
 	sort.Slice(
 		fields, func(i, j int) bool {
-			return fields[i].Name > fields[j].Name
+			return fields[i].Name < fields[j].Name
 		},
 	)
 
@@ -212,11 +216,11 @@ func mapDatabaseType(databaseTypeName string, isNullable bool) string {
 func (g *DtoGenerator) createImports(fields []databaseField) []string {
 	importsMap := map[string]string{
 		"time.Time":       "time",
-		"sql.NullBool":    "sql",
-		"sql.NullFloat64": "sql",
-		"sql.NullString":  "sql",
-		"sql.NullTime":    "sql",
-		"sql.NullInt64":   "sql",
+		"sql.NullBool":    "database/sql",
+		"sql.NullFloat64": "database/sql",
+		"sql.NullString":  "database/sql",
+		"sql.NullTime":    "database/sql",
+		"sql.NullInt64":   "database/sql",
 	}
 
 	alreadyImported := make(map[string]struct{})

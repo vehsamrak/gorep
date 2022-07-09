@@ -84,11 +84,11 @@ func TestDtoGenerator_Generate(t *testing.T) {
 
 	expectedDto, err := ioutil.ReadFile(testDtoGoldenExampleFilePath)
 	if err != nil {
-		t.Errorf("Generate() reading golden file error: %v", err)
+		t.Errorf("golden file reading error: %v", err)
 	}
 	expectedDtoWithImports, err := ioutil.ReadFile(testDtoWithImportsGoldenExampleFilePath)
 	if err != nil {
-		t.Errorf("Generate() reading golden file error: %v", err)
+		t.Errorf("golden file reading error: %v", err)
 	}
 
 	type arguments struct {
