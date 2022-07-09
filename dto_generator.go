@@ -4,11 +4,39 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"sort"
 	"strings"
 	"text/template"
 	"unicode"
 
 	"github.com/jmoiron/sqlx"
+)
+
+const (
+	databaseFieldTypeBigint           = "bigint"
+	databaseFieldTypeBlob             = "blob"
+	databaseFieldTypeBoolean          = "boolean"
+	databaseFieldTypeCharacter        = "character"
+	databaseFieldTypeDate             = "date"
+	databaseFieldTypeDatetime         = "datetime"
+	databaseFieldTypeDecimal          = "decimal"
+	databaseFieldTypeDouble           = "double"
+	databaseFieldTypeDoublePrecision  = "double precision"
+	databaseFieldTypeFloat            = "float"
+	databaseFieldTypeInt              = "int"
+	databaseFieldTypeInt2             = "int2"
+	databaseFieldTypeInt8             = "int8"
+	databaseFieldTypeInteger          = "integer"
+	databaseFieldTypeMediumint        = "mediumint"
+	databaseFieldTypeNumeric          = "numeric"
+	databaseFieldTypeReal             = "real"
+	databaseFieldTypeSmallint         = "smallint"
+	databaseFieldTypeText             = "text"
+	databaseFieldTypeTimestamp        = "timestamp"
+	databaseFieldTypeTinyint          = "tinyint"
+	databaseFieldTypeUnsignedBigInt   = "unsigned big int"
+	databaseFieldTypeVarchar          = "varchar"
+	databaseFieldTypeVaryingCharacter = "varying character"
 )
 
 type DtoGenerator struct {
@@ -43,14 +71,24 @@ func (g *DtoGenerator) Generate(packageName string, tableName string) (string, e
 		return "", err
 	}
 
+	sort.Slice(
+		fields, func(i, j int) bool {
+			return fields[i].Name > fields[j].Name
+		},
+	)
+
+	imports := g.createImports(fields)
+
 	data := struct {
 		PackageName string
 		TableName   string
 		Fields      []databaseField
+		Imports     []string
 	}{
 		PackageName: packageName,
 		TableName:   g.uppercaseFirstLetter(tableName),
 		Fields:      fields,
+		Imports:     imports,
 	}
 
 	var buffer bytes.Buffer
@@ -84,15 +122,37 @@ func (g *DtoGenerator) fetchFields(tableName string) ([]databaseField, error) {
 
 func mapDatabaseType(databaseTypeName string) string {
 	typeMap := map[string]string{
-		"int":     "int64",
-		"varchar": "string",
+		databaseFieldTypeBigint:           "int64",
+		databaseFieldTypeBlob:             "[]byte",
+		databaseFieldTypeBoolean:          "bool",
+		databaseFieldTypeCharacter:        "string",
+		databaseFieldTypeDate:             "time.Time",
+		databaseFieldTypeDatetime:         "time.Time",
+		databaseFieldTypeDecimal:          "float64",
+		databaseFieldTypeDouble:           "float64",
+		databaseFieldTypeDoublePrecision:  "float64",
+		databaseFieldTypeFloat:            "float64",
+		databaseFieldTypeInt2:             "int8",
+		databaseFieldTypeInt8:             "int8",
+		databaseFieldTypeInt:              "int64",
+		databaseFieldTypeInteger:          "int64",
+		databaseFieldTypeMediumint:        "int64",
+		databaseFieldTypeNumeric:          "int64",
+		databaseFieldTypeReal:             "float64",
+		databaseFieldTypeSmallint:         "int64",
+		databaseFieldTypeText:             "string",
+		databaseFieldTypeTimestamp:        "time.Time",
+		databaseFieldTypeTinyint:          "int64",
+		databaseFieldTypeUnsignedBigInt:   "uint64",
+		databaseFieldTypeVarchar:          "string",
+		databaseFieldTypeVaryingCharacter: "string",
 	}
 
 	databaseTypeName = strings.ToLower(databaseTypeName)
 
 	typeName, ok := typeMap[databaseTypeName]
 	if !ok {
-		typeName = "string"
+		typeName = "[]byte"
 	}
 
 	return typeName
@@ -103,4 +163,24 @@ func (g *DtoGenerator) uppercaseFirstLetter(text string) string {
 	letters[0] = unicode.ToUpper(letters[0])
 
 	return string(letters)
+}
+
+func (g *DtoGenerator) createImports(fields []databaseField) []string {
+	importsMap := map[string]string{
+		"time.Time": "time",
+	}
+
+	alreadyImported := make(map[string]struct{})
+
+	var imports []string
+	for _, field := range fields {
+		if importPackage, ok := importsMap[field.Type]; ok {
+			if _, ok := alreadyImported[importPackage]; !ok {
+				imports = append(imports, importPackage)
+				alreadyImported[importPackage] = struct{}{}
+			}
+		}
+	}
+
+	return imports
 }
