@@ -1,7 +1,11 @@
-# Gorep - Golang Repository generator
+# Gorep - Golang repository generator
 
 Tired of hand-writing DTO's and SQL for accessing database data?
 Gorep aims to automate this tedious and repeatable task for you, using boilerplate code generation.
+
+It can:
+* Generate DTO structures from database tables
+* [not ready for now] Generate Repository classes with fetching methods containing SQL and DTO-mapping boilerplate. 
 
 ### What is repository
 
