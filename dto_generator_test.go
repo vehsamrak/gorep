@@ -8,19 +8,19 @@ import (
 
 	"github.com/andreyvit/diff"
 	"github.com/jmoiron/sqlx"
+	_ "github.com/lib/pq"
 	_ "github.com/mattn/go-sqlite3"
 )
 
 func TestDtoGenerator_Generate(t *testing.T) {
 	const (
-		databaseFile                            = "test_data/database.db"
 		packageName                             = "package_name"
 		tableName                               = "test"
 		testDtoGoldenExampleFilePath            = "test_data/test_dto.golden"
 		testDtoWithImportsGoldenExampleFilePath = "test_data/test_dto_with_imports.golden"
 	)
 
-	database := createDatabase(databaseFile)
+	database := createPostgresDatabase()
 	defer database.Close()
 
 	expectedDto, err := ioutil.ReadFile(testDtoGoldenExampleFilePath)
@@ -54,8 +54,8 @@ func TestDtoGenerator_Generate(t *testing.T) {
 			mockBehaviour: func() {
 				createTable(
 					database, tableName, map[string]string{
-						"id":    databaseFieldTypeInt,
-						"value": databaseFieldTypeVarchar,
+						"id":    makeNotNullable(databaseFieldTypeInt),
+						"value": makeNotNullable(databaseFieldTypeVarchar),
 					},
 				)
 			},
@@ -72,30 +72,24 @@ func TestDtoGenerator_Generate(t *testing.T) {
 			mockBehaviour: func() {
 				createTable(
 					database, tableName, map[string]string{
-						"value_int":               databaseFieldTypeInt,
-						"value_integer":           databaseFieldTypeInteger,
-						"value_tinyint":           databaseFieldTypeTinyint,
-						"value_smallint":          databaseFieldTypeSmallint,
-						"value_mediumint":         databaseFieldTypeMediumint,
-						"value_bigint":            databaseFieldTypeBigint,
-						"value_unsigned_big_int":  databaseFieldTypeUnsignedBigInt,
-						"value_int2":              databaseFieldTypeInt2,
-						"value_int8":              databaseFieldTypeInt8,
-						"value_character":         databaseFieldTypeCharacter,
-						"value_varchar":           databaseFieldTypeVarchar,
-						"value_varying_character": databaseFieldTypeVaryingCharacter,
-						"value_blob":              databaseFieldTypeBlob,
-						"value_text":              databaseFieldTypeText,
-						"value_real":              databaseFieldTypeReal,
-						"value_double":            databaseFieldTypeDouble,
-						"value_double_precision":  databaseFieldTypeDoublePrecision,
-						"value_float":             databaseFieldTypeFloat,
-						"value_numeric":           databaseFieldTypeNumeric,
-						"value_decimal":           databaseFieldTypeDecimal,
-						"value_boolean":           databaseFieldTypeBoolean,
-						"value_date":              databaseFieldTypeDate,
-						"value_datetime":          databaseFieldTypeDatetime,
-						"value_timestamp":         databaseFieldTypeTimestamp,
+						"value_bigint":                 databaseFieldTypeBigint,
+						"value_boolean":                databaseFieldTypeBoolean,
+						"value_date":                   databaseFieldTypeDate,
+						"value_decimal":                databaseFieldTypeDecimal,
+						"value_double_precision":       databaseFieldTypeDoublePrecision,
+						"value_float":                  databaseFieldTypeFloat,
+						"value_int":                    databaseFieldTypeInt,
+						"value_int2":                   databaseFieldTypeInt2,
+						"value_int8":                   databaseFieldTypeInt8,
+						"value_integer":                databaseFieldTypeInteger,
+						"value_numeric":                databaseFieldTypeNumeric,
+						"value_real":                   databaseFieldTypeReal,
+						"value_serial":                 databaseFieldTypeSerial,
+						"value_smallint":               databaseFieldTypeSmallint,
+						"value_text":                   databaseFieldTypeText,
+						"value_timestamp":              databaseFieldTypeTimestamp,
+						"value_timestamp_not_nullable": makeNotNullable(databaseFieldTypeTimestamp),
+						"value_varchar":                databaseFieldTypeVarchar,
 					},
 				)
 			},
@@ -128,7 +122,7 @@ func TestDtoGenerator_Generate(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(
 			tt.name, func(t *testing.T) {
-				dropAllTables(tt.arguments.database)
+				dropTable(tt.arguments.database, tableName)
 				tt.mockBehaviour()
 
 				generator := NewDtoGenerator(tt.arguments.database)
@@ -149,8 +143,17 @@ func TestDtoGenerator_Generate(t *testing.T) {
 	}
 }
 
-func createDatabase(databaseFile string) *sqlx.DB {
-	database, err := sqlx.Connect("sqlite3", databaseFile)
+func makeNotNullable(typeName string) string {
+	return fmt.Sprintf("%s NOT NULL", typeName)
+}
+
+func createPostgresDatabase() *sqlx.DB {
+	database, err := sqlx.Connect(
+		"postgres", fmt.Sprintf(
+			"host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
+			"localhost", 5433, "2Vw0AAtV2svu", "010dYSkjHMlY", "mud2",
+		),
+	)
 	if err != nil {
 		panic(fmt.Errorf("[create_database] error: %w", err))
 	}
@@ -168,44 +171,16 @@ func createTable(database *sqlx.DB, tableName string, columnsMap map[string]stri
 		columns = append(columns, fmt.Sprintf("%s %s", columnName, columnType))
 	}
 
-	fff := fmt.Sprintf("create table %s (%s)", tableName, strings.Join(columns, ", "))
-	_, err := database.Exec(fff)
+	query := fmt.Sprintf("create table %s (%s)", tableName, strings.Join(columns, ", "))
+	_, err := database.Exec(query)
 	if err != nil {
 		panic(fmt.Errorf("[create_table] error: %w", err))
 	}
 }
 
-func dropAllTables(database *sqlx.DB) {
-	rows, err := database.Query("SELECT name FROM sqlite_master WHERE type = 'table'")
+func dropTable(database *sqlx.DB, tableName string) {
+	_, err := database.Exec(fmt.Sprintf("DROP TABLE IF EXISTS %s", tableName))
 	if err != nil {
-		panic(err)
-	}
-	defer rows.Close()
-
-	// sqlite_sequence table could not be dropped in SQLite
-	inapplicableTableNames := map[string]struct{}{
-		"sqlite_sequence": {},
-	}
-
-	var tableNames []string
-	for rows.Next() {
-		var query string
-		err := rows.Scan(&query)
-		if err != nil {
-			panic(fmt.Errorf("[drop_all_tables] error: %w", err))
-		}
-
-		tableNames = append(tableNames, query)
-	}
-
-	for _, tableName := range tableNames {
-		if _, ok := inapplicableTableNames[tableName]; ok {
-			continue
-		}
-
-		_, err = database.Exec(fmt.Sprintf("DROP TABLE %s", tableName))
-		if err != nil {
-			panic(fmt.Errorf("[drop_all_tables] error: %w", err))
-		}
+		panic(fmt.Errorf("[drop_table] error: %w", err))
 	}
 }

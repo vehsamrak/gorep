@@ -6,6 +6,6 @@ import (
 {{ range .Imports }}	"{{ . }}"
 {{ end }})
 {{ end }}
-type Table{{ .TableName }}DTO struct {
-{{ range .Fields }}    {{ .Name | UppercaseFirstLetter }} {{ .Type }} `db:"{{ .Name }}"`
+type Table{{ .TableName | Uppercase }}DTO struct {
+{{ range .Fields }}    {{ .Name | Uppercase }} {{ .Type }} `db:"{{ .Name }}"`
 {{ end }}}

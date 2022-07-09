@@ -7,7 +7,6 @@ import (
 	"sort"
 	"strings"
 	"text/template"
-	"unicode"
 
 	"github.com/jmoiron/sqlx"
 )
@@ -16,6 +15,7 @@ const (
 	databaseFieldTypeBigint           = "bigint"
 	databaseFieldTypeBlob             = "blob"
 	databaseFieldTypeBoolean          = "boolean"
+	databaseFieldTypeBool             = "bool"
 	databaseFieldTypeCharacter        = "character"
 	databaseFieldTypeDate             = "date"
 	databaseFieldTypeDatetime         = "datetime"
@@ -23,13 +23,17 @@ const (
 	databaseFieldTypeDouble           = "double"
 	databaseFieldTypeDoublePrecision  = "double precision"
 	databaseFieldTypeFloat            = "float"
+	databaseFieldTypeFloat4           = "float4"
+	databaseFieldTypeFloat8           = "float8"
 	databaseFieldTypeInt              = "int"
 	databaseFieldTypeInt2             = "int2"
+	databaseFieldTypeInt4             = "int4"
 	databaseFieldTypeInt8             = "int8"
 	databaseFieldTypeInteger          = "integer"
 	databaseFieldTypeMediumint        = "mediumint"
 	databaseFieldTypeNumeric          = "numeric"
 	databaseFieldTypeReal             = "real"
+	databaseFieldTypeSerial           = "serial"
 	databaseFieldTypeSmallint         = "smallint"
 	databaseFieldTypeText             = "text"
 	databaseFieldTypeTimestamp        = "timestamp"
@@ -58,7 +62,7 @@ func (g *DtoGenerator) Generate(packageName string, tableName string) (string, e
 	}
 
 	funcMap := template.FuncMap{
-		"UppercaseFirstLetter": g.uppercaseFirstLetter,
+		"Uppercase": StringCaseConverter{}.SnakeCaseToCamelCase,
 	}
 
 	templator, err := template.New("dto.template").Funcs(funcMap).ParseFiles("dto.template")
@@ -86,7 +90,7 @@ func (g *DtoGenerator) Generate(packageName string, tableName string) (string, e
 		Imports     []string
 	}{
 		PackageName: packageName,
-		TableName:   g.uppercaseFirstLetter(tableName),
+		TableName:   tableName,
 		Fields:      fields,
 		Imports:     imports,
 	}
@@ -101,30 +105,55 @@ func (g *DtoGenerator) Generate(packageName string, tableName string) (string, e
 }
 
 func (g *DtoGenerator) fetchFields(tableName string) ([]databaseField, error) {
-	rows, err := g.database.Queryx(fmt.Sprintf("SELECT * FROM %s", tableName))
+	rows, err := g.database.Queryx(
+		fmt.Sprintf(
+			"SELECT column_name, udt_name, is_nullable FROM information_schema.columns WHERE table_schema = 'public' AND table_name = '%s'",
+			tableName,
+		),
+	)
 	if err != nil {
 		return nil, err
 	}
 
 	var fields []databaseField
-	columnTypes, err := rows.ColumnTypes()
-	for _, columnType := range columnTypes {
+	for rows.Next() {
+		var columnName string
+		var columnType string
+		var isNullableData string
+		err = rows.Scan(&columnName, &columnType, &isNullableData)
+		if err != nil {
+			return nil, err
+		}
+
+		var isNullable bool
+		if isNullableData == "YES" {
+			isNullable = true
+		}
+
+		databaseTypeName := columnType
+		databaseTypeName = strings.ToLower(databaseTypeName)
+
 		fields = append(
 			fields, databaseField{
-				Name: columnType.Name(),
-				Type: mapDatabaseType(columnType.DatabaseTypeName()),
+				Name: columnName,
+				Type: mapDatabaseType(databaseTypeName, isNullable),
 			},
 		)
+	}
+	err = rows.Err()
+	if err != nil {
+		return nil, err
 	}
 
 	return fields, nil
 }
 
-func mapDatabaseType(databaseTypeName string) string {
+func mapDatabaseType(databaseTypeName string, isNullable bool) string {
 	typeMap := map[string]string{
 		databaseFieldTypeBigint:           "int64",
 		databaseFieldTypeBlob:             "[]byte",
 		databaseFieldTypeBoolean:          "bool",
+		databaseFieldTypeBool:             "bool",
 		databaseFieldTypeCharacter:        "string",
 		databaseFieldTypeDate:             "time.Time",
 		databaseFieldTypeDatetime:         "time.Time",
@@ -132,8 +161,11 @@ func mapDatabaseType(databaseTypeName string) string {
 		databaseFieldTypeDouble:           "float64",
 		databaseFieldTypeDoublePrecision:  "float64",
 		databaseFieldTypeFloat:            "float64",
-		databaseFieldTypeInt2:             "int8",
-		databaseFieldTypeInt8:             "int8",
+		databaseFieldTypeFloat4:           "float64",
+		databaseFieldTypeFloat8:           "float64",
+		databaseFieldTypeInt2:             "int64",
+		databaseFieldTypeInt4:             "int64",
+		databaseFieldTypeInt8:             "int64",
 		databaseFieldTypeInt:              "int64",
 		databaseFieldTypeInteger:          "int64",
 		databaseFieldTypeMediumint:        "int64",
@@ -155,19 +187,36 @@ func mapDatabaseType(databaseTypeName string) string {
 		typeName = "[]byte"
 	}
 
+	if !isNullable {
+		return typeName
+	}
+
+	nullableTypeMap := map[string]string{
+		"[]byte":    "sql.NullByte",
+		"bool":      "sql.NullBool",
+		"float64":   "sql.NullFloat64",
+		"int64":     "sql.NullInt64",
+		"string":    "sql.NullString",
+		"time.Time": "sql.NullTime",
+		"uint64":    "sql.NullInt64",
+	}
+
+	nullableTypeName, ok := nullableTypeMap[typeName]
+	if ok {
+		typeName = nullableTypeName
+	}
+
 	return typeName
-}
-
-func (g *DtoGenerator) uppercaseFirstLetter(text string) string {
-	letters := []rune(text)
-	letters[0] = unicode.ToUpper(letters[0])
-
-	return string(letters)
 }
 
 func (g *DtoGenerator) createImports(fields []databaseField) []string {
 	importsMap := map[string]string{
-		"time.Time": "time",
+		"time.Time":       "time",
+		"sql.NullBool":    "sql",
+		"sql.NullFloat64": "sql",
+		"sql.NullString":  "sql",
+		"sql.NullTime":    "sql",
+		"sql.NullInt64":   "sql",
 	}
 
 	alreadyImported := make(map[string]struct{})

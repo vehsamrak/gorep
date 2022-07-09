@@ -3,32 +3,27 @@
 package package_name
 
 import (
+	"sql"
 	"time"
 )
 
 type TableTestDTO struct {
-    Value_varying_character string `db:"value_varying_character"`
-    Value_varchar string `db:"value_varchar"`
-    Value_unsigned_big_int uint64 `db:"value_unsigned_big_int"`
-    Value_tinyint int64 `db:"value_tinyint"`
-    Value_timestamp time.Time `db:"value_timestamp"`
-    Value_text string `db:"value_text"`
-    Value_smallint int64 `db:"value_smallint"`
-    Value_real float64 `db:"value_real"`
-    Value_numeric int64 `db:"value_numeric"`
-    Value_mediumint int64 `db:"value_mediumint"`
-    Value_integer int64 `db:"value_integer"`
-    Value_int8 int8 `db:"value_int8"`
-    Value_int2 int8 `db:"value_int2"`
-    Value_int int64 `db:"value_int"`
-    Value_float float64 `db:"value_float"`
-    Value_double_precision float64 `db:"value_double_precision"`
-    Value_double float64 `db:"value_double"`
-    Value_decimal float64 `db:"value_decimal"`
-    Value_datetime time.Time `db:"value_datetime"`
-    Value_date time.Time `db:"value_date"`
-    Value_character string `db:"value_character"`
-    Value_boolean bool `db:"value_boolean"`
-    Value_blob []byte `db:"value_blob"`
-    Value_bigint int64 `db:"value_bigint"`
+    ValueVarchar sql.NullString `db:"value_varchar"`
+    ValueTimestampNotNullable time.Time `db:"value_timestamp_not_nullable"`
+    ValueTimestamp sql.NullTime `db:"value_timestamp"`
+    ValueText sql.NullString `db:"value_text"`
+    ValueSmallint sql.NullInt64 `db:"value_smallint"`
+    ValueSerial int64 `db:"value_serial"`
+    ValueReal sql.NullFloat64 `db:"value_real"`
+    ValueNumeric sql.NullInt64 `db:"value_numeric"`
+    ValueInteger sql.NullInt64 `db:"value_integer"`
+    ValueInt8 sql.NullInt64 `db:"value_int8"`
+    ValueInt2 sql.NullInt64 `db:"value_int2"`
+    ValueInt sql.NullInt64 `db:"value_int"`
+    ValueFloat sql.NullFloat64 `db:"value_float"`
+    ValueDoublePrecision sql.NullFloat64 `db:"value_double_precision"`
+    ValueDecimal sql.NullInt64 `db:"value_decimal"`
+    ValueDate sql.NullTime `db:"value_date"`
+    ValueBoolean sql.NullBool `db:"value_boolean"`
+    ValueBigint sql.NullInt64 `db:"value_bigint"`
 }
