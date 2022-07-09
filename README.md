@@ -20,7 +20,7 @@ and create DTO contents string. Then this string could be saved to file.
 
 2. Create new application to call from command line or go:generate.
 
-First, create file *dto_generator.go* with main function:
+First, create file `dto_generator.go` with main function:
 
 ```go
 package main
@@ -77,7 +77,7 @@ func main() {
 
 Now it could be called with: `go run dto_generator main example_dto.go tablename`.
 
-Or with go:generate:
+Or with `go:generate`:
 ```go
 package main
 
