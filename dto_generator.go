@@ -2,6 +2,7 @@ package gorep
 
 import (
 	"bytes"
+	_ "embed"
 	"errors"
 	"fmt"
 	"sort"
@@ -43,6 +44,9 @@ const (
 	databaseFieldTypeVaryingCharacter = "varying character"
 )
 
+//go:embed dto.template
+var templateFile string
+
 type DtoGenerator struct {
 	database *sqlx.DB
 }
@@ -65,7 +69,7 @@ func (g *DtoGenerator) Generate(packageName string, tableName string) (string, e
 		"Uppercase": StringCaseConverter{}.SnakeCaseToCamelCase,
 	}
 
-	templator, err := template.New("dto.template").Funcs(funcMap).ParseFiles("dto.template")
+	templator, err := template.New("dto.template").Funcs(funcMap).Parse(templateFile)
 	if err != nil {
 		return "", err
 	}
