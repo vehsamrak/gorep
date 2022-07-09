@@ -99,24 +99,12 @@ import (
 )
 
 type TablenameDTO struct {
-    Bigint sql.NullInt64 `db:"bigint"`
-    Boolean sql.NullBool `db:"boolean"`
-    Date sql.NullTime `db:"date"`
-    Decimal sql.NullInt64 `db:"decimal"`
-    DoublePrecision sql.NullFloat64 `db:"double_precision"`
-    Float sql.NullFloat64 `db:"float"`
-    Int sql.NullInt64 `db:"int"`
-    Int2 sql.NullInt64 `db:"int2"`
-    Int8 sql.NullInt64 `db:"int8"`
-    Integer sql.NullInt64 `db:"integer"`
-    Numeric sql.NullInt64 `db:"numeric"`
-    Real sql.NullFloat64 `db:"real"`
-    Serial int64 `db:"serial"`
-    Smallint sql.NullInt64 `db:"smallint"`
-    Text sql.NullString `db:"text"`
-    Timestamp sql.NullTime `db:"timestamp"`
-    TimestampNotNullable time.Time `db:"timestamp_not_nullable"`
-    Varchar sql.NullString `db:"varchar"`
+	Id int64 `db:"id"`
+	Name sql.NullString `db:"name"`
+	Description sql.NullString `db:"description"`
+	StartTime time.Time `db:"start_time"`
+	FinishTime sql.NullTime `db:"finish_time"`
+	WasApproved bool `db:"was_approved"`
 }
 ```
 
