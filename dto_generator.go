@@ -200,7 +200,7 @@ func mapDatabaseType(databaseTypeName string, isNullable bool) string {
 	}
 
 	nullableTypeMap := map[string]string{
-		"[]byte":    "sql.NullByte",
+		"[]byte":    "[]sql.NullByte",
 		"bool":      "sql.NullBool",
 		"float64":   "sql.NullFloat64",
 		"int64":     "sql.NullInt64",
