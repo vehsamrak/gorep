@@ -1,11 +1,15 @@
 # Gorep - Golang repository generator
 
+![example branch parameter](https://github.com/vehsamrak/gorep/actions/workflows/main.yml/badge.svg?branch=main)
+[![codecov](https://codecov.io/gh/vehsamrak/gorep/branch/main/graph/badge.svg?token=1wSNzO0Ds1)](https://codecov.io/gh/vehsamrak/gorep)
+
 Tired of hand-writing DTO's and SQL for accessing database data?
 Gorep aims to automate this tedious and repeatable task for you, using boilerplate code generation.
 
 It can:
+
 * Generate DTO structures from database tables
-* [not ready for now] Generate Repository classes with fetching methods containing SQL and DTO-mapping boilerplate. 
+* [not ready for now] Generate Repository classes with fetching methods containing SQL and DTO-mapping boilerplate.
 
 ### What is repository
 
