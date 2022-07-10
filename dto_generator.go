@@ -65,11 +65,14 @@ func (g *DtoGenerator) Generate(packageName string, tableName string) (string, e
 		return "", errors.New("table name must not be empty")
 	}
 
-	funcMap := template.FuncMap{
-		"Uppercase": StringCaseConverter{}.SnakeCaseToCamelCase,
-	}
+	templator, err := template.New("dto.template").
+		Funcs(
+			template.FuncMap{
+				"Uppercase": StringCaseConverter{}.SnakeCaseToCamelCase,
+			},
+		).
+		Parse(templateFile)
 
-	templator, err := template.New("dto.template").Funcs(funcMap).Parse(templateFile)
 	if err != nil {
 		return "", err
 	}
