@@ -14,6 +14,9 @@ for accessing domain objects. (c) [Martin Fowler](https://martinfowler.com/eaaCa
 
 ### Supported databases
 Only PostgreSQL is supported for now.
+Default schema is "public", and could be changed prefixing table name with schema. For example, to fetch use 
+table named "table_name" and schema "schema_name" you should pass "schema_name.table_name" as table name. If no prefix
+set to table name, default "public" schema would be used. Thereby "table_name" and "public.table_name" are equal.
 
 ## Usage
 

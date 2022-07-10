@@ -113,9 +113,18 @@ func (g *DtoGenerator) Generate(packageName string, tableName string) (string, e
 }
 
 func (g *DtoGenerator) fetchFields(tableName string) ([]databaseField, error) {
+	schema := "public"
+
+	tableNameParts := strings.Split(tableName, ".")
+	if len(tableNameParts) > 1 {
+		schema = tableNameParts[0]
+		tableName = strings.Join(tableNameParts[1:], ".")
+	}
+
 	rows, err := g.database.Queryx(
 		fmt.Sprintf(
-			"SELECT column_name, udt_name, is_nullable FROM information_schema.columns WHERE table_schema = 'public' AND table_name = '%s'",
+			"SELECT column_name, udt_name, is_nullable FROM information_schema.columns WHERE table_schema = '%s' AND table_name = '%s'",
+			schema,
 			tableName,
 		),
 	)
