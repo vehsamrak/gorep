@@ -17,10 +17,11 @@ Repository mediates between the domain and data mapping layers using a collectio
 for accessing domain objects. (c) [Martin Fowler](https://martinfowler.com/eaaCatalog/repository.html)
 
 ### Supported databases
-Only PostgreSQL is supported for now.
-Default schema is "public", and could be changed prefixing table name with schema. For example, to fetch use 
-table named "table_name" and schema "schema_name" you should pass "schema_name.table_name" as table name. If no prefix
-set to table name, default "public" schema would be used. Thereby "table_name" and "public.table_name" are equal.
+Only **PostgreSQL** is supported for now.
+Default schema is "public", which could be changed by prefixing table name with schema name. For example, to fetch
+table named "table_name" and schema "schema_name" - you should pass "schema_name.table_name" as table name. If no
+prefix set to table name, then default "public" schema would be used. Thereby "table_name" and "public.table_name"
+are equal.
 
 ## Usage
 
