@@ -52,7 +52,10 @@ func TestMain(m *testing.M) {
 
 	log.Println("Connecting to database on url: ", databaseUrl)
 
-	resource.Expire(maxDockerWaitSeconds)
+	err = resource.Expire(maxDockerWaitSeconds)
+	if err != nil {
+		panic(fmt.Errorf("[docker_test] expiration error: %w", err))
+	}
 
 	pool.MaxWait = maxDockerWaitSeconds * time.Second
 	if err = pool.Retry(
@@ -77,7 +80,7 @@ func TestMain(m *testing.M) {
 func TestDtoGenerator_Generate(t *testing.T) {
 	const (
 		packageName                             = "package_name"
-		tableName                               = "test"
+		tableName                               = "public.test"
 		testDtoGoldenExampleFilePath            = "test_data/test_dto.golden"
 		testDtoWithImportsGoldenExampleFilePath = "test_data/test_dto_with_imports.golden"
 	)

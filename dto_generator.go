@@ -91,6 +91,8 @@ func (g *DtoGenerator) Generate(packageName string, tableName string) (string, e
 
 	imports := g.createImports(fields)
 
+	_, tableName = g.parseSchemaAndTableName(tableName)
+
 	data := struct {
 		PackageName string
 		TableName   string
@@ -113,13 +115,7 @@ func (g *DtoGenerator) Generate(packageName string, tableName string) (string, e
 }
 
 func (g *DtoGenerator) fetchFields(tableName string) ([]databaseField, error) {
-	schema := "public"
-
-	tableNameParts := strings.Split(tableName, ".")
-	if len(tableNameParts) > 1 {
-		schema = tableNameParts[0]
-		tableName = strings.Join(tableNameParts[1:], ".")
-	}
+	schema, tableName := g.parseSchemaAndTableName(tableName)
 
 	rows, err := g.database.Queryx(
 		fmt.Sprintf(
@@ -153,7 +149,7 @@ func (g *DtoGenerator) fetchFields(tableName string) ([]databaseField, error) {
 		fields = append(
 			fields, databaseField{
 				Name: columnName,
-				Type: mapDatabaseType(databaseTypeName, isNullable),
+				Type: g.mapDatabaseType(databaseTypeName, isNullable),
 			},
 		)
 	}
@@ -165,7 +161,19 @@ func (g *DtoGenerator) fetchFields(tableName string) ([]databaseField, error) {
 	return fields, nil
 }
 
-func mapDatabaseType(databaseTypeName string, isNullable bool) string {
+func (g *DtoGenerator) parseSchemaAndTableName(tableName string) (string, string) {
+	schema := "public"
+
+	tableNameParts := strings.Split(tableName, ".")
+	if len(tableNameParts) > 1 {
+		schema = tableNameParts[0]
+		tableName = tableNameParts[1]
+	}
+
+	return schema, tableName
+}
+
+func (g *DtoGenerator) mapDatabaseType(databaseTypeName string, isNullable bool) string {
 	typeMap := map[string]string{
 		databaseFieldTypeBigint:           "int64",
 		databaseFieldTypeBlob:             "[]byte",
