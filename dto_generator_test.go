@@ -1,6 +1,7 @@
 package gorep
 
 import (
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -10,10 +11,13 @@ import (
 	"time"
 
 	"github.com/andreyvit/diff"
+	"github.com/golang/mock/gomock"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
 	"github.com/ory/dockertest/v3"
 	"github.com/ory/dockertest/v3/docker"
+
+	"github.com/vehsamrak/gorep/test_data"
 )
 
 var testDatabase *sqlx.DB
@@ -77,7 +81,7 @@ func TestMain(m *testing.M) {
 	os.Exit(code)
 }
 
-func TestDtoGenerator_Generate(t *testing.T) {
+func TestDtoGenerator_Generate_testDatabase(t *testing.T) {
 	const (
 		packageName                             = "package_name"
 		tableName                               = "public.test"
@@ -95,7 +99,7 @@ func TestDtoGenerator_Generate(t *testing.T) {
 	}
 
 	type arguments struct {
-		database    *sqlx.DB
+		database    Database
 		tableName   string
 		packageName string
 	}
@@ -216,6 +220,66 @@ func TestDtoGenerator_Generate(t *testing.T) {
 	}
 }
 
+func TestDtoGenerator_Generate_mockDatabase(t *testing.T) {
+	const (
+		packageName = "package_name"
+		tableName   = "public.test"
+	)
+
+	mockController := gomock.NewController(t)
+	defer mockController.Finish()
+
+	mockDatabase := test_data.NewMockDatabase(mockController)
+
+	type arguments struct {
+		database    Database
+		tableName   string
+		packageName string
+	}
+	tests := []struct {
+		name          string
+		arguments     arguments
+		mockBehaviour func()
+		expected      string
+		expectedError bool
+	}{
+		{
+			name: "database query error, must return error",
+			arguments: arguments{
+				database:    mockDatabase,
+				packageName: packageName,
+				tableName:   tableName,
+			},
+			mockBehaviour: func() {
+				mockDatabase.EXPECT().Query(gomock.Any(), gomock.Any()).Return(nil, errors.New("error"))
+			},
+			expected:      "",
+			expectedError: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(
+			tt.name, func(t *testing.T) {
+				tt.mockBehaviour()
+
+				generator := NewDtoGenerator(tt.arguments.database)
+				result, err := generator.Generate(tt.arguments.packageName, tt.arguments.tableName)
+
+				if (err != nil) != tt.expectedError {
+					t.Errorf("Generate() error: %v, expected error: %v", err, tt.expectedError)
+					return
+				}
+				if result != tt.expected {
+					t.Errorf(
+						"Generate() result is not as expected:\n%v",
+						diff.LineDiff(result, tt.expected),
+					)
+				}
+			},
+		)
+	}
+}
+
 func makeNotNullable(typeName string) string {
 	return fmt.Sprintf("%s NOT NULL", typeName)
 }
@@ -237,9 +301,57 @@ func createTable(database *sqlx.DB, tableName string, columnsMap map[string]stri
 	}
 }
 
-func dropTable(database *sqlx.DB, tableName string) {
+func dropTable(database Database, tableName string) {
 	_, err := database.Exec(fmt.Sprintf("DROP TABLE IF EXISTS %s", tableName))
 	if err != nil {
 		panic(fmt.Errorf("[drop_table] error: %w", err))
 	}
+}
+
+func TestDtoGenerator_Generate_InvalidTemplate(t *testing.T) {
+	mockController := gomock.NewController(t)
+	defer mockController.Finish()
+
+	t.Run(
+		"invalid template file, must return parse error", func(t *testing.T) {
+			const (
+				invalidTemplateContents = "{{}}"
+			)
+			database := test_data.NewMockDatabase(mockController)
+			expectedErrorMessage := "template: dto.template:1: missing value for command"
+			generator := NewDtoGenerator(database)
+			generator.templateDTO = invalidTemplateContents
+
+			_, err := generator.Generate("package_name", "table_name")
+
+			if err.Error() != expectedErrorMessage {
+				t.Errorf("Generate() must return error \"%s\", returned \"%s\"", expectedErrorMessage, err)
+			}
+		},
+	)
+
+	t.Run(
+		"invalid template file, must return execution error", func(t *testing.T) {
+			const (
+				tableName               = "test"
+				packageName             = "package_name"
+				invalidTemplateContents = "{{ .nonexistent }}"
+			)
+			dropTable(testDatabase, tableName)
+			createTable(
+				testDatabase, tableName, map[string]string{
+					"id": databaseFieldTypeSerial,
+				},
+			)
+			expectedErrorMessage := "can't evaluate field nonexistent"
+			generator := NewDtoGenerator(testDatabase)
+			generator.templateDTO = invalidTemplateContents
+
+			_, err := generator.Generate(packageName, tableName)
+
+			if !strings.Contains(err.Error(), expectedErrorMessage) {
+				t.Errorf("Generate() must return error \"%s\", returned \"%s\"", expectedErrorMessage, err)
+			}
+		},
+	)
 }

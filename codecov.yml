@@ -2,4 +2,8 @@ coverage:
   status:
     project:
       default:
-        target: auto
+        target: 90%
+        threshold: 1%
+
+ignore:
+  - "test_data"

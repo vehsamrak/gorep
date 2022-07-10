@@ -8,8 +8,6 @@ import (
 	"sort"
 	"strings"
 	"text/template"
-
-	"github.com/jmoiron/sqlx"
 )
 
 const (
@@ -48,11 +46,12 @@ const (
 var templateFile string
 
 type DtoGenerator struct {
-	database *sqlx.DB
+	database    Database
+	templateDTO string
 }
 
-func NewDtoGenerator(database *sqlx.DB) *DtoGenerator {
-	return &DtoGenerator{database: database}
+func NewDtoGenerator(database Database) *DtoGenerator {
+	return &DtoGenerator{database: database, templateDTO: templateFile}
 }
 
 // Generate generates DTO for tableName as file content string
@@ -71,7 +70,7 @@ func (g *DtoGenerator) Generate(packageName string, tableName string) (string, e
 				"Uppercase": StringCaseConverter{}.SnakeCaseToCamelCase,
 			},
 		).
-		Parse(templateFile)
+		Parse(g.templateDTO)
 
 	if err != nil {
 		return "", err
@@ -120,7 +119,7 @@ func (g *DtoGenerator) Generate(packageName string, tableName string) (string, e
 func (g *DtoGenerator) fetchFields(tableName string) ([]databaseField, error) {
 	schema, tableName := g.parseSchemaAndTableName(tableName)
 
-	rows, err := g.database.Queryx(
+	rows, err := g.database.Query(
 		fmt.Sprintf(
 			"SELECT column_name, udt_name, is_nullable FROM information_schema.columns WHERE table_schema = '%s' AND table_name = '%s'",
 			schema,
