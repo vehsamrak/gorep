@@ -180,6 +180,17 @@ func TestDtoGenerator_Generate(t *testing.T) {
 			expected:      "",
 			expectedError: true,
 		},
+		{
+			name: "table not exists, must return error",
+			arguments: arguments{
+				database:    testDatabase,
+				packageName: packageName,
+				tableName:   "non_existing_table",
+			},
+			mockBehaviour: func() {},
+			expected:      "",
+			expectedError: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(
