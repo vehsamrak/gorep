@@ -9,7 +9,7 @@ Gorep aims to automate this tedious and repeatable task for you, using boilerpla
 It can:
 
 * Generate DTO structures from database tables
-* [not ready for now] Generate Repository classes with fetching methods containing SQL and DTO-mapping boilerplate.
+* **[not ready for now]** Generate Repository classes with fetching methods containing SQL and DTO-mapping boilerplate.
 
 ### What is repository
 
