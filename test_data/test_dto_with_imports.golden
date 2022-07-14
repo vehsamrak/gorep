@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-type TableTestDTO struct {
+type TestDTO struct {
     ValueBigint sql.NullInt64 `db:"value_bigint"`
     ValueBoolean sql.NullBool `db:"value_boolean"`
     ValueDate sql.NullTime `db:"value_date"`

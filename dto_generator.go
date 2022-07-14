@@ -54,7 +54,7 @@ func NewDtoGenerator(database Database) *DtoGenerator {
 	return &DtoGenerator{database: database, templateDTO: templateFile}
 }
 
-// Generate generates DTO for tableName as file content string
+// Generate generates DTO for dtoPath as file content string
 func (g *DtoGenerator) Generate(packageName string, tableName string) (string, error) {
 	if len(packageName) == 0 {
 		return "", errors.New("package name must not be empty")

@@ -30,3 +30,10 @@ func (StringCaseConverter) SnakeCaseToCamelCase(input string) (result string) {
 
 	return
 }
+
+func (StringCaseConverter) Lowercase(input string) (result string) {
+	letters := []rune(input)
+	letters[0] = unicode.ToLower(letters[0])
+
+	return string(letters)
+}
