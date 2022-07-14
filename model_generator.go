@@ -134,8 +134,6 @@ func (g *ModelGenerator) Generate(packageName string, dtoFileContents string) (s
 	return buffer.String(), nil
 
 	// TODO[petr]: if model file exist
-
-	// return "", fmt.Errorf("file must be a valid go file")
 }
 
 // TODO[petr]: check if needed
