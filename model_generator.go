@@ -60,8 +60,6 @@ func (g *ModelGenerator) Generate(packageName string, dtoFileContents string) (s
 				return true
 			}
 
-			// structName = dtoFileContents[(astStruct.Pos() - 1):(astStruct.Fields.Opening - 1)]
-
 			for _, field := range astStruct.Fields.List {
 				currentField := field.Names[0]
 				if !currentField.IsExported() {
@@ -136,7 +134,6 @@ func (g *ModelGenerator) Generate(packageName string, dtoFileContents string) (s
 	// TODO[petr]: if model file exist
 }
 
-// TODO[petr]: check if needed
 func (g *ModelGenerator) createImports(fields []modelField) []string {
 	importsMap := map[string]string{
 		"time.Time":       "time",
@@ -149,7 +146,6 @@ func (g *ModelGenerator) createImports(fields []modelField) []string {
 	}
 
 	alreadyImported := make(map[string]struct{})
-
 	var imports []string
 	for _, field := range fields {
 		if importPackage, ok := importsMap[field.Type]; ok {
