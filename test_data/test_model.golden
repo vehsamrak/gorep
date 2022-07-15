@@ -2,23 +2,34 @@
 
 package package_name
 
+import (
+	"time"
+)
+
 type Test struct {
     id int64
+    time time.Time
     value string
 }
 
 func NewTest(
     id int64,
+    time time.Time,
     value string,
 ) *Test {
     return &Test{
         id: id,
+        time: time,
         value: value,
     }
 }
 
 func (m *Test) Id() int64 {
     return m.id
+}
+
+func (m *Test) Time() time.Time {
+    return m.time
 }
 
 func (m *Test) Value() string {

@@ -86,6 +86,7 @@ func (g *ModelGenerator) Generate(packageName string, dtoFileContents string) (s
 	}
 
 	// TODO[petr]: if model file not exist
+
 	if len(modelFields) == 0 {
 		return "", fmt.Errorf("no fields found in DTO")
 	}
@@ -118,7 +119,6 @@ func (g *ModelGenerator) Generate(packageName string, dtoFileContents string) (s
 			},
 		).
 		Parse(g.templateModel)
-
 	if err != nil {
 		return "", err
 	}
