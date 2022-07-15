@@ -1,7 +1,8 @@
 # Gorep - Golang repository generator
 
-![example branch parameter](https://github.com/vehsamrak/gorep/actions/workflows/main.yml/badge.svg?branch=main)
+![CI](https://github.com/vehsamrak/gorep/actions/workflows/main.yml/badge.svg?branch=main)
 [![codecov](https://codecov.io/gh/vehsamrak/gorep/branch/main/graph/badge.svg?token=1wSNzO0Ds1)](https://codecov.io/gh/vehsamrak/gorep)
+[![DeepSource](https://deepsource.io/gh/vehsamrak/gorep.svg/?label=active+issues&show_trend=true&token=iYOMH3keC-KA6pmDSfrsqQ0V)](https://deepsource.io/gh/vehsamrak/gorep/)
 
 Tired of hand-writing DTO's and SQL for accessing database data?
 Gorep aims to automate this tedious and repeatable task for you, using boilerplate code generation.
