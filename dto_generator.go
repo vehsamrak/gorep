@@ -163,7 +163,7 @@ func (g *DtoGenerator) fetchFields(tableName string) ([]databaseField, error) {
 	return fields, nil
 }
 
-func (g *DtoGenerator) parseSchemaAndTableName(tableName string) (string, string) {
+func (*DtoGenerator) parseSchemaAndTableName(tableName string) (string, string) {
 	schema := "public"
 
 	tableNameParts := strings.Split(tableName, ".")
@@ -175,7 +175,7 @@ func (g *DtoGenerator) parseSchemaAndTableName(tableName string) (string, string
 	return schema, tableName
 }
 
-func (g *DtoGenerator) mapDatabaseType(databaseTypeName string, isNullable bool) string {
+func (*DtoGenerator) mapDatabaseType(databaseTypeName string, isNullable bool) string {
 	typeMap := map[string]string{
 		databaseFieldTypeBigint:           "int64",
 		databaseFieldTypeBlob:             "[]byte",
@@ -236,7 +236,7 @@ func (g *DtoGenerator) mapDatabaseType(databaseTypeName string, isNullable bool)
 	return typeName
 }
 
-func (g *DtoGenerator) createImports(fields []databaseField) []string {
+func (*DtoGenerator) createImports(fields []databaseField) []string {
 	importsMap := map[string]string{
 		"time.Time":       "time",
 		"[]sql.NullByte":  "database/sql",

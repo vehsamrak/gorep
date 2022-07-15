@@ -134,7 +134,7 @@ func (g *ModelGenerator) Generate(packageName string, dtoFileContents string) (s
 	// TODO[petr]: if model file exist
 }
 
-func (g *ModelGenerator) createImports(fields []modelField) []string {
+func (*ModelGenerator) createImports(fields []modelField) []string {
 	importsMap := map[string]string{
 		"time.Time":       "time",
 		"[]sql.NullByte":  "database/sql",
@@ -159,6 +159,6 @@ func (g *ModelGenerator) createImports(fields []modelField) []string {
 	return imports
 }
 
-func (g *ModelGenerator) removeDTOFromStructName(name string) string {
+func (*ModelGenerator) removeDTOFromStructName(name string) string {
 	return strings.ReplaceAll(name, "DTO", "")
 }
