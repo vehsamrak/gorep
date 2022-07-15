@@ -148,10 +148,15 @@ func (g *DtoGenerator) fetchFields(tableName string) ([]databaseField, error) {
 		databaseTypeName := columnType
 		databaseTypeName = strings.ToLower(databaseTypeName)
 
+		databaseType := g.mapDatabaseType(databaseTypeName)
+		if isNullable {
+			databaseType = g.mapNullableTypeName(databaseType)
+		}
+
 		fields = append(
 			fields, databaseField{
 				Name: columnName,
-				Type: g.mapDatabaseType(databaseTypeName, isNullable),
+				Type: databaseType,
 			},
 		)
 	}
@@ -175,7 +180,7 @@ func (*DtoGenerator) parseSchemaAndTableName(tableName string) (string, string) 
 	return schema, tableName
 }
 
-func (*DtoGenerator) mapDatabaseType(databaseTypeName string, isNullable bool) string {
+func (*DtoGenerator) mapDatabaseType(databaseTypeName string) string {
 	typeMap := map[string]string{
 		databaseFieldTypeBigint:           "int64",
 		databaseFieldTypeBlob:             "[]byte",
@@ -214,11 +219,11 @@ func (*DtoGenerator) mapDatabaseType(databaseTypeName string, isNullable bool) s
 		typeName = "[]byte"
 	}
 
-	if !isNullable {
-		return typeName
-	}
+	return typeName
+}
 
-	nullableTypeMap := map[string]string{
+func (*DtoGenerator) mapNullableTypeName(typeName string) string {
+	nullableTypeName, ok := map[string]string{
 		"[]byte":    "[]sql.NullByte",
 		"bool":      "sql.NullBool",
 		"float64":   "sql.NullFloat64",
@@ -226,9 +231,7 @@ func (*DtoGenerator) mapDatabaseType(databaseTypeName string, isNullable bool) s
 		"string":    "sql.NullString",
 		"time.Time": "sql.NullTime",
 		"uint64":    "sql.NullInt64",
-	}
-
-	nullableTypeName, ok := nullableTypeMap[typeName]
+	}[typeName]
 	if ok {
 		typeName = nullableTypeName
 	}
