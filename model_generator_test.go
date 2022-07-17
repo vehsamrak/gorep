@@ -6,7 +6,7 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 
-	"github.com/vehsamrak/gorep/test_tools"
+	"github.com/vehsamrak/gorep/tests/test_tools"
 )
 
 func TestModelGenerator_Generate(t *testing.T) {

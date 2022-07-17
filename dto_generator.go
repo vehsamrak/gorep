@@ -11,35 +11,35 @@ import (
 )
 
 const (
-	databaseFieldTypeBigint           = "bigint"
-	databaseFieldTypeBlob             = "blob"
-	databaseFieldTypeBoolean          = "boolean"
-	databaseFieldTypeBool             = "bool"
-	databaseFieldTypeCharacter        = "character"
-	databaseFieldTypeDate             = "date"
-	databaseFieldTypeDatetime         = "datetime"
-	databaseFieldTypeDecimal          = "decimal"
-	databaseFieldTypeDouble           = "double"
-	databaseFieldTypeDoublePrecision  = "double precision"
-	databaseFieldTypeFloat            = "float"
-	databaseFieldTypeFloat4           = "float4"
-	databaseFieldTypeFloat8           = "float8"
-	databaseFieldTypeInt              = "int"
-	databaseFieldTypeInt2             = "int2"
-	databaseFieldTypeInt4             = "int4"
-	databaseFieldTypeInt8             = "int8"
-	databaseFieldTypeInteger          = "integer"
-	databaseFieldTypeMediumint        = "mediumint"
-	databaseFieldTypeNumeric          = "numeric"
-	databaseFieldTypeReal             = "real"
-	databaseFieldTypeSerial           = "serial"
-	databaseFieldTypeSmallint         = "smallint"
-	databaseFieldTypeText             = "text"
-	databaseFieldTypeTimestamp        = "timestamp"
-	databaseFieldTypeTinyint          = "tinyint"
-	databaseFieldTypeUnsignedBigInt   = "unsigned big int"
-	databaseFieldTypeVarchar          = "varchar"
-	databaseFieldTypeVaryingCharacter = "varying character"
+	DatabaseFieldTypeBigint           = "bigint"
+	DatabaseFieldTypeBlob             = "blob"
+	DatabaseFieldTypeBoolean          = "boolean"
+	DatabaseFieldTypeBool             = "bool"
+	DatabaseFieldTypeCharacter        = "character"
+	DatabaseFieldTypeDate             = "date"
+	DatabaseFieldTypeDatetime         = "datetime"
+	DatabaseFieldTypeDecimal          = "decimal"
+	DatabaseFieldTypeDouble           = "double"
+	DatabaseFieldTypeDoublePrecision  = "double precision"
+	DatabaseFieldTypeFloat            = "float"
+	DatabaseFieldTypeFloat4           = "float4"
+	DatabaseFieldTypeFloat8           = "float8"
+	DatabaseFieldTypeInt              = "int"
+	DatabaseFieldTypeInt2             = "int2"
+	DatabaseFieldTypeInt4             = "int4"
+	DatabaseFieldTypeInt8             = "int8"
+	DatabaseFieldTypeInteger          = "integer"
+	DatabaseFieldTypeMediumint        = "mediumint"
+	DatabaseFieldTypeNumeric          = "numeric"
+	DatabaseFieldTypeReal             = "real"
+	DatabaseFieldTypeSerial           = "serial"
+	DatabaseFieldTypeSmallint         = "smallint"
+	DatabaseFieldTypeText             = "text"
+	DatabaseFieldTypeTimestamp        = "timestamp"
+	DatabaseFieldTypeTinyint          = "tinyint"
+	DatabaseFieldTypeUnsignedBigInt   = "unsigned big int"
+	DatabaseFieldTypeVarchar          = "varchar"
+	DatabaseFieldTypeVaryingCharacter = "varying character"
 )
 
 //go:embed dto.template
@@ -52,6 +52,10 @@ type DtoGenerator struct {
 
 func NewDtoGenerator(database Database) *DtoGenerator {
 	return &DtoGenerator{database: database, templateDTO: templateFile}
+}
+
+func (g *DtoGenerator) SetTemplate(template string) {
+	g.templateDTO = template
 }
 
 // Generate generates DTO for dtoPath as file content string
@@ -182,34 +186,34 @@ func (*DtoGenerator) parseSchemaAndTableName(tableName string) (string, string) 
 
 func (*DtoGenerator) mapDatabaseType(databaseTypeName string) string {
 	typeMap := map[string]string{
-		databaseFieldTypeBigint:           "int64",
-		databaseFieldTypeBlob:             "[]byte",
-		databaseFieldTypeBoolean:          "bool",
-		databaseFieldTypeBool:             "bool",
-		databaseFieldTypeCharacter:        "string",
-		databaseFieldTypeDate:             "time.Time",
-		databaseFieldTypeDatetime:         "time.Time",
-		databaseFieldTypeDecimal:          "float64",
-		databaseFieldTypeDouble:           "float64",
-		databaseFieldTypeDoublePrecision:  "float64",
-		databaseFieldTypeFloat:            "float64",
-		databaseFieldTypeFloat4:           "float64",
-		databaseFieldTypeFloat8:           "float64",
-		databaseFieldTypeInt2:             "int64",
-		databaseFieldTypeInt4:             "int64",
-		databaseFieldTypeInt8:             "int64",
-		databaseFieldTypeInt:              "int64",
-		databaseFieldTypeInteger:          "int64",
-		databaseFieldTypeMediumint:        "int64",
-		databaseFieldTypeNumeric:          "int64",
-		databaseFieldTypeReal:             "float64",
-		databaseFieldTypeSmallint:         "int64",
-		databaseFieldTypeText:             "string",
-		databaseFieldTypeTimestamp:        "time.Time",
-		databaseFieldTypeTinyint:          "int64",
-		databaseFieldTypeUnsignedBigInt:   "uint64",
-		databaseFieldTypeVarchar:          "string",
-		databaseFieldTypeVaryingCharacter: "string",
+		DatabaseFieldTypeBigint:           "int64",
+		DatabaseFieldTypeBlob:             "[]byte",
+		DatabaseFieldTypeBoolean:          "bool",
+		DatabaseFieldTypeBool:             "bool",
+		DatabaseFieldTypeCharacter:        "string",
+		DatabaseFieldTypeDate:             "time.Time",
+		DatabaseFieldTypeDatetime:         "time.Time",
+		DatabaseFieldTypeDecimal:          "float64",
+		DatabaseFieldTypeDouble:           "float64",
+		DatabaseFieldTypeDoublePrecision:  "float64",
+		DatabaseFieldTypeFloat:            "float64",
+		DatabaseFieldTypeFloat4:           "float64",
+		DatabaseFieldTypeFloat8:           "float64",
+		DatabaseFieldTypeInt2:             "int64",
+		DatabaseFieldTypeInt4:             "int64",
+		DatabaseFieldTypeInt8:             "int64",
+		DatabaseFieldTypeInt:              "int64",
+		DatabaseFieldTypeInteger:          "int64",
+		DatabaseFieldTypeMediumint:        "int64",
+		DatabaseFieldTypeNumeric:          "int64",
+		DatabaseFieldTypeReal:             "float64",
+		DatabaseFieldTypeSmallint:         "int64",
+		DatabaseFieldTypeText:             "string",
+		DatabaseFieldTypeTimestamp:        "time.Time",
+		DatabaseFieldTypeTinyint:          "int64",
+		DatabaseFieldTypeUnsignedBigInt:   "uint64",
+		DatabaseFieldTypeVarchar:          "string",
+		DatabaseFieldTypeVaryingCharacter: "string",
 	}
 
 	databaseTypeName = strings.ToLower(databaseTypeName)

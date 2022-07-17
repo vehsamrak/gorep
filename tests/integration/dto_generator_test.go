@@ -1,4 +1,4 @@
-package gorep
+package integration
 
 import (
 	"errors"
@@ -10,7 +10,9 @@ import (
 	"github.com/andreyvit/diff"
 	"github.com/golang/mock/gomock"
 	_ "github.com/lib/pq"
+	"github.com/stretchr/testify/assert"
 
+	"github.com/vehsamrak/gorep"
 	"github.com/vehsamrak/gorep/test_data"
 )
 
@@ -32,7 +34,7 @@ func TestDtoGenerator_Generate_testDatabase(t *testing.T) {
 	}
 
 	type arguments struct {
-		database    Database
+		database    gorep.Database
 		tableName   string
 		packageName string
 	}
@@ -53,8 +55,8 @@ func TestDtoGenerator_Generate_testDatabase(t *testing.T) {
 			mockBehaviour: func() {
 				createTable(
 					testDatabase, tableName, map[string]string{
-						"id":    makeNotNullable(databaseFieldTypeInt),
-						"value": makeNotNullable(databaseFieldTypeVarchar),
+						"id":    makeNotNullable(gorep.DatabaseFieldTypeInt),
+						"value": makeNotNullable(gorep.DatabaseFieldTypeVarchar),
 					},
 				)
 			},
@@ -71,24 +73,24 @@ func TestDtoGenerator_Generate_testDatabase(t *testing.T) {
 			mockBehaviour: func() {
 				createTable(
 					testDatabase, tableName, map[string]string{
-						"value_bigint":                 databaseFieldTypeBigint,
-						"value_boolean":                databaseFieldTypeBoolean,
-						"value_date":                   databaseFieldTypeDate,
-						"value_decimal":                databaseFieldTypeDecimal,
-						"value_double_precision":       databaseFieldTypeDoublePrecision,
-						"value_float":                  databaseFieldTypeFloat,
-						"value_int":                    databaseFieldTypeInt,
-						"value_int2":                   databaseFieldTypeInt2,
-						"value_int8":                   databaseFieldTypeInt8,
-						"value_integer":                databaseFieldTypeInteger,
-						"value_numeric":                databaseFieldTypeNumeric,
-						"value_real":                   databaseFieldTypeReal,
-						"value_serial":                 databaseFieldTypeSerial,
-						"value_smallint":               databaseFieldTypeSmallint,
-						"value_text":                   databaseFieldTypeText,
-						"value_timestamp":              databaseFieldTypeTimestamp,
-						"value_timestamp_not_nullable": makeNotNullable(databaseFieldTypeTimestamp),
-						"value_varchar":                databaseFieldTypeVarchar,
+						"value_bigint":                 gorep.DatabaseFieldTypeBigint,
+						"value_boolean":                gorep.DatabaseFieldTypeBoolean,
+						"value_date":                   gorep.DatabaseFieldTypeDate,
+						"value_decimal":                gorep.DatabaseFieldTypeDecimal,
+						"value_double_precision":       gorep.DatabaseFieldTypeDoublePrecision,
+						"value_float":                  gorep.DatabaseFieldTypeFloat,
+						"value_int":                    gorep.DatabaseFieldTypeInt,
+						"value_int2":                   gorep.DatabaseFieldTypeInt2,
+						"value_int8":                   gorep.DatabaseFieldTypeInt8,
+						"value_integer":                gorep.DatabaseFieldTypeInteger,
+						"value_numeric":                gorep.DatabaseFieldTypeNumeric,
+						"value_real":                   gorep.DatabaseFieldTypeReal,
+						"value_serial":                 gorep.DatabaseFieldTypeSerial,
+						"value_smallint":               gorep.DatabaseFieldTypeSmallint,
+						"value_text":                   gorep.DatabaseFieldTypeText,
+						"value_timestamp":              gorep.DatabaseFieldTypeTimestamp,
+						"value_timestamp_not_nullable": makeNotNullable(gorep.DatabaseFieldTypeTimestamp),
+						"value_varchar":                gorep.DatabaseFieldTypeVarchar,
 					},
 				)
 			},
@@ -135,19 +137,14 @@ func TestDtoGenerator_Generate_testDatabase(t *testing.T) {
 				dropTable(tt.arguments.database, tableName)
 				tt.mockBehaviour()
 
-				generator := NewDtoGenerator(tt.arguments.database)
+				generator := gorep.NewDtoGenerator(tt.arguments.database)
 				result, err := generator.Generate(tt.arguments.packageName, tt.arguments.tableName)
 
 				if (err != nil) != tt.expectedError {
 					t.Errorf("Generate() error: %v, expected error: %v", err, tt.expectedError)
 					return
 				}
-				if result != tt.expected {
-					t.Errorf(
-						"Generate() result is not as expected:\n%v",
-						diff.LineDiff(result, tt.expected),
-					)
-				}
+				assert.Equal(t, tt.expected, result)
 			},
 		)
 	}
@@ -165,7 +162,7 @@ func TestDtoGenerator_Generate_mockDatabase(t *testing.T) {
 	mockDatabase := test_data.NewMockDatabase(mockController)
 
 	type arguments struct {
-		database    Database
+		database    gorep.Database
 		tableName   string
 		packageName string
 	}
@@ -195,7 +192,7 @@ func TestDtoGenerator_Generate_mockDatabase(t *testing.T) {
 			tt.name, func(t *testing.T) {
 				tt.mockBehaviour()
 
-				generator := NewDtoGenerator(tt.arguments.database)
+				generator := gorep.NewDtoGenerator(tt.arguments.database)
 				result, err := generator.Generate(tt.arguments.packageName, tt.arguments.tableName)
 
 				if (err != nil) != tt.expectedError {
@@ -224,8 +221,8 @@ func TestDtoGenerator_Generate_InvalidTemplate(t *testing.T) {
 			)
 			database := test_data.NewMockDatabase(mockController)
 			expectedErrorMessage := "template: dto.template:1: missing value for command"
-			generator := NewDtoGenerator(database)
-			generator.templateDTO = invalidTemplateContents
+			generator := gorep.NewDtoGenerator(database)
+			generator.SetTemplate(invalidTemplateContents)
 
 			_, err := generator.Generate("package_name", "table_name")
 
@@ -245,12 +242,12 @@ func TestDtoGenerator_Generate_InvalidTemplate(t *testing.T) {
 			dropTable(testDatabase, tableName)
 			createTable(
 				testDatabase, tableName, map[string]string{
-					"id": databaseFieldTypeSerial,
+					"id": gorep.DatabaseFieldTypeSerial,
 				},
 			)
 			expectedErrorMessage := "can't evaluate field nonexistent"
-			generator := NewDtoGenerator(testDatabase)
-			generator.templateDTO = invalidTemplateContents
+			generator := gorep.NewDtoGenerator(testDatabase)
+			generator.SetTemplate(invalidTemplateContents)
 
 			_, err := generator.Generate(packageName, tableName)
 

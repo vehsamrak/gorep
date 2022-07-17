@@ -1,4 +1,4 @@
-package gorep
+package integration
 
 import (
 	"fmt"
@@ -12,6 +12,8 @@ import (
 	_ "github.com/lib/pq"
 	"github.com/ory/dockertest/v3"
 	"github.com/ory/dockertest/v3/docker"
+
+	"github.com/vehsamrak/gorep"
 )
 
 var testDatabase *sqlx.DB
@@ -92,7 +94,7 @@ func createTable(database *sqlx.DB, tableName string, columnsMap map[string]stri
 	}
 }
 
-func dropTable(database Database, tableName string) {
+func dropTable(database gorep.Database, tableName string) {
 	_, err := database.Exec(fmt.Sprintf("DROP TABLE IF EXISTS %s", tableName))
 	if err != nil {
 		panic(fmt.Errorf("[drop_table] error: %w", err))
