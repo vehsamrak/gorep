@@ -19,7 +19,7 @@ jobs:
           go-version: 1.18
 
       - name: Test
-        run: bash <(curl -s https://raw.githubusercontent.com/Vehsamrak/go-multi-package-coverage/1.2.0/test.sh)
+        run: go test -v -race ./... -coverprofile=coverage.out -coverpkg=./...
 
       - name: Upload test coverage to Codecov
         uses: codecov/codecov-action@v3
